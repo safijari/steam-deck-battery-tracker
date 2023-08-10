@@ -25,7 +25,7 @@ class Plugin:
             if not tables:
                 decky_plugin.logger.info("Creating database table for the first time")
                 self.cursor.execute(
-                    "create table battery (time __real, capacity __integer, status __integer, power __integer);"
+                    "create table battery (time __integer, capacity __integer, status __integer, power __integer);"
                 )
                 self.con.commit()
 
