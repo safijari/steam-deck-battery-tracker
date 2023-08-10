@@ -70,8 +70,7 @@ class Plugin:
                 power = int(volt * curr * 10.0**-11)
                 curr_time = int(time.time())
                 running_list.append((curr_time, cap, stat, power))
-                if len(running_list) > 1:
-                    decky_plugin.logger.info(f"Committing {running_list}")
+                if len(running_list) > 10:
                     self.cursor.executemany(
                         "insert into battery values (?, ?, ?, ?)", running_list
                     )
