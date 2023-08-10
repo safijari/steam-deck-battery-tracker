@@ -13,20 +13,27 @@ class Plugin:
 
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
-        decky_plugin.logger.info("steam deck battery logger _main")
-        battery_db = Path(decky_plugin.DECKY_PLUGIN_RUNTIME_DIR) / "battery.db"
-        database_file = str(battery_db)
-        self.con = sqlite3.connect(database_file)
-        self.cursor = self.con.cursor()
-        tables = self.cursor.execute(
-            "select name from sqlite_master where type='table';"
-        ).fetchall()
-        if not tables:
-            decky_plugin.logger.info("Creating database table for the first time")
-            self.cursor.execute(
-                "create table battery (time __real, capacity __integer, status __integer, power __integer);"
-            )
-            self.con.commit()
+        try:
+            decky_plugin.logger.info("steam deck battery logger _main")
+            battery_db = Path(decky_plugin.DECKY_PLUGIN_RUNTIME_DIR) / "battery.db"
+            database_file = str(battery_db)
+            self.con = sqlite3.connect(database_file)
+            self.cursor = self.con.cursor()
+            tables = self.cursor.execute(
+                "select name from sqlite_master where type='table';"
+            ).fetchall()
+            if not tables:
+                decky_plugin.logger.info("Creating database table for the first time")
+                self.cursor.execute(
+                    "create table battery (time __real, capacity __integer, status __integer, power __integer);"
+                )
+                self.con.commit()
+
+            loop = asyncio.get_event_loop()
+            self._recorder_task = loop.create_task(Plugin.recorder(self))
+            decky_plugin.logger.info("steam deck battery logger _main finished")
+        except Exception:
+            decky_plugin.logger.exception("_main")
 
     # Function called first during the unload process, utilize this to handle your plugin being removed
     async def _unload(self):
@@ -52,19 +59,22 @@ class Plugin:
                 volt = int(volt_file.read().strip())
                 curr = int(curr_file.read().strip())
                 cap = int(cap_file.read().strip())
-                if cap == "Discharging":
-                    cap = -1
-                elif cap == "Charging":
-                    cap = 1
-                else:
-                    cap = 0
                 stat = status.read().strip()
+                if stat == "Discharging":
+                    stat = -1
+                elif stat == "Charging":
+                    stat = 1
+                else:
+                    stat = 0
 
                 power = int(volt * curr * 10.0**-11)
                 curr_time = int(time.time())
                 running_list.append((curr_time, cap, stat, power))
-                if len(running_list) > 10:
-                    self.cursor.executemany("insert into battery values (?, ?, ?, ?)", running_list)
+                if len(running_list) > 1:
+                    decky_plugin.logger.info(f"Committing {running_list}")
+                    self.cursor.executemany(
+                        "insert into battery values (?, ?, ?, ?)", running_list
+                    )
                     self.con.commit()
                     running_list = []
             except Exception:
