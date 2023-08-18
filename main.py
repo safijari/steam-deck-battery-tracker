@@ -14,6 +14,7 @@ class Plugin:
     # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
     async def _main(self):
         try:
+            self.app = "Unknown"
             decky_plugin.logger.info("steam deck battery logger _main")
             battery_db = Path(decky_plugin.DECKY_PLUGIN_RUNTIME_DIR) / "battery.db"
             database_file = str(battery_db)
@@ -25,7 +26,7 @@ class Plugin:
             if not tables:
                 decky_plugin.logger.info("Creating database table for the first time")
                 self.cursor.execute(
-                    "create table battery (time __integer, capacity __integer, status __integer, power __integer);"
+                    "create table battery (time __integer, capacity __integer, status __integer, power __integer, app __text);"
                 )
                 self.con.commit()
 
@@ -39,6 +40,21 @@ class Plugin:
     async def _unload(self):
         decky_plugin.logger.info("steam deck battery logger _unload")
         pass
+
+    async def set_app(self, app: str = "Unknown"):
+        decky_plugin.logger.info(f"Getting app as {app}")
+        if app:
+            self.app = app
+        return True
+
+    async def get_recent_data(self):
+        end_time = time.time()
+        data = self.cursor.execute("select * from battery where time > " + str(int(end_time - 48*3600))).fetchall()
+        start_time = data[0][0]
+        diff = end_time - start_time
+        x_axis = [(d[0] - start_time)/diff for d in data]
+        y_axis = [d[1]/100 for d in data]
+        return {"x": x_axis, "cap": y_axis}
 
     @asyncio.coroutine
     async def recorder(self):
@@ -69,10 +85,10 @@ class Plugin:
 
                 power = int(volt * curr * 10.0**-11)
                 curr_time = int(time.time())
-                running_list.append((curr_time, cap, stat, power))
+                running_list.append((curr_time, cap, stat, power, self.app))
                 if len(running_list) > 10:
                     self.cursor.executemany(
-                        "insert into battery values (?, ?, ?, ?)", running_list
+                        "insert into battery values (?, ?, ?, ?, ?)", running_list
                     )
                     self.con.commit()
                     running_list = []
