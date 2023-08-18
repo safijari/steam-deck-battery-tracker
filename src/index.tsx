@@ -10,8 +10,9 @@ import {
   ServerAPI,
   showContextMenu,
   staticClasses,
+  SliderField
 } from "decky-frontend-lib";
-import { VFC } from "react";
+import { VFC, useState } from "react";
 import { FaShip } from "react-icons/fa";
 
 import logo from "../assets/logo.png";
@@ -23,27 +24,14 @@ import {Canvas} from "./canvas";
 // }
 
 const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
-  // const [result, setResult] = useState<number | undefined>();
-
-  // const onClick = async () => {
-  //   const result = await serverAPI.callPluginMethod<AddMethodArgs, number>(
-  //     "add",
-  //     {
-  //       left: 2,
-  //       right: 2,
-  //     }
-  //   );
-  //   if (result.success) {
-  //     setResult(result.result);
-  //   }
-  // };
+  const [lookback, setLookback] = useState<number | undefined>(2);
 
   const drawCanvas = async (ctx: any, frameCount: number) => {
     if (frameCount % 1000 > 1) {
       return;
     }
 
-    var data = (await serverAPI.callPluginMethod("get_recent_data", {})).result;
+    var data = (await serverAPI.callPluginMethod("get_recent_data", {lookback: lookback})).result;
 
     const width: number = ctx.canvas.width;
     const height: number = ctx.canvas.height;
@@ -88,13 +76,13 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
       ctx.beginPath();
       // console.log(data.x[i+1] - data.x[i]);
       if (data.x[i+1] - data.x[i] > 0.000078354119349755*10) {
+        ctx.strokeStyle = "yellow";
+      } else {
         if (data.cap[i+1] > data.cap[i]) {
           ctx.strokeStyle = "green";
         } else {
-          ctx.strokeStyle = "yellow";
+          ctx.strokeStyle = "red";
         }
-      } else {
-        ctx.strokeStyle = "red";
       }
       ctx.moveTo(data.x[i]*width, height - data.cap[i]*height);
       ctx.lineTo(data.x[i+1]*width, height- data.cap[i+1]*height);
@@ -106,6 +94,21 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
 
   return (
     <PanelSection title="Recent Battery Use">
+      <PanelSectionRow>
+        <SliderField
+          label="Lookback in days"
+          description="Lookback in days"
+          value={lookback || 2}
+          step={1}
+          max={7}
+          min={1}
+          resetValue={2}
+          showValue={true}
+          onChange={(value: number) => {
+            setLookback(value);
+          }}
+        />
+      </PanelSectionRow>
       <PanelSectionRow>
       <Canvas draw={(ctx: any, frameCount: number) => drawCanvas(ctx, frameCount)} width={268} height={200} style={{
                 "width": "268px",

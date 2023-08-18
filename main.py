@@ -47,13 +47,14 @@ class Plugin:
             self.app = app
         return True
 
-    async def get_recent_data(self):
+    async def get_recent_data(self, lookback=2):
         end_time = time.time()
-        data = self.cursor.execute("select * from battery where time > " + str(int(end_time - 48*3600))).fetchall()
-        start_time = data[0][0]
+        start_time = end_time - 24*lookback*3600
+        data = self.cursor.execute("select * from battery where time > " + str(int(end_time - start_time))).fetchall()
         diff = end_time - start_time
         x_axis = [(d[0] - start_time)/diff for d in data]
         y_axis = [d[1]/100 for d in data]
+        decky_plugin.logger.info("lookback " + str(lookback) + " " + str(len(data)))
         return {"x": x_axis, "cap": y_axis}
 
     @asyncio.coroutine
