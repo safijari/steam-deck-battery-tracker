@@ -13,7 +13,7 @@ import {
   SliderField
 } from "decky-frontend-lib";
 import { VFC, useState } from "react";
-import { FaShip } from "react-icons/fa";
+import { FaBatteryFull, FaShip } from "react-icons/fa";
 
 import logo from "../assets/logo.png";
 import {Canvas} from "./canvas";
@@ -155,7 +155,7 @@ export default definePlugin((serverApi: ServerAPI) => {
   return {
     title: <div className={staticClasses.Title}>Example Plugin</div>,
     content: <Content serverAPI={serverApi} />,
-    icon: <FaShip />,
+    icon: <FaBatteryFull />,
     onDismount() {
       serverApi.routerHook.removeRoute("/decky-plugin-test");
     },
