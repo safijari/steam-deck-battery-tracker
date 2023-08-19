@@ -2,6 +2,8 @@
 
 Simple plugin to track battery history for your Steam Deck as well as power stats.
 
+![Example](example.jpg)
+
 # How to install (it's not on the plugin store)
 
 Make sure you have [decky loader](https://github.com/SteamDeckHomebrew/decky-loader) installed and have a a [sudo password](https://www.dexerto.com/tech/how-to-set-a-sudo-2031183/) set up. Go to desktop mode, in a terminal run
