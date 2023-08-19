@@ -23,15 +23,23 @@ import {Canvas} from "./canvas";
 //   right: number;
 // }
 
-const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
-  const [lookback, setLookback] = useState<number | undefined>(2);
+const Content: VFC<{ serverAPI: ServerAPI, startData: any }> = ({serverAPI}) => {
+  const [lookback, setLookback] = useState<number | undefined>(1);
+  const [leData, setData] = useState<any>(null);
 
   const drawCanvas = async (ctx: any, frameCount: number) => {
     if (frameCount % 1000 > 1) {
       return;
     }
+    if (leData == null) {
+      var data = (await serverAPI.callPluginMethod("get_recent_data", {lookback: lookback})).result;
+      console.log("Got first time data", data);
+      setData(data);
+    } else {
+      var data = leData;
+    }
 
-    var data = (await serverAPI.callPluginMethod("get_recent_data", {lookback: lookback})).result;
+    console.log("in draw canvas ", leData);
 
     const width: number = ctx.canvas.width;
     const height: number = ctx.canvas.height;
@@ -98,14 +106,15 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
         <SliderField
           label="Lookback in days"
           description="Lookback in days"
-          value={lookback || 2}
+          value={lookback || 1}
           step={1}
           max={7}
           min={1}
-          resetValue={2}
+          resetValue={1}
           showValue={true}
           onChange={(value: number) => {
             setLookback(value);
+            serverAPI.callPluginMethod("get_recent_data", {lookback: value}).then((val) => {setData(val.result)});
           }}
         />
       </PanelSectionRow>
@@ -118,6 +127,14 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({serverAPI}) => {
                 "background-color":"#1a1f2c",
                 "border-radius":"4px",
               }} onClick={(e: any) => console.log(e)}/>
+      </PanelSectionRow>
+      <PanelSectionRow>
+        {leData != null &&
+          <h2>Avg Power Consumption by App</h2>
+        }
+        {leData!=null && leData.power_data.map((item: any) => (
+          <div>{item.name}: {item.average_power}W</div>
+        ))}
       </PanelSectionRow>
     </PanelSection>
   );
