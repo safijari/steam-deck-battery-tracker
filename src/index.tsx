@@ -130,7 +130,7 @@ const Content: VFC<{ serverAPI: ServerAPI, startData: any }> = ({serverAPI}) => 
       </PanelSectionRow>
       <PanelSectionRow>
         {leData != null &&
-          <h4>Avg Power Consumption by App</h4>
+          <h4>Avg Power Consumption</h4>
         }
         {leData!=null && leData.power_data.map((item: any) => (
           <div>{item.name}: {item.average_power}W</div>
