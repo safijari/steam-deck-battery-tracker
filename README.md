@@ -9,3 +9,5 @@ Make sure you have a [sudo password](https://www.dexerto.com/tech/how-to-set-a-s
 ```
 wget https://github.com/safijari/steam-deck-battery-tracker/releases/download/0.1.0/steam-deck-battery-tracker.zip -O /tmp/plugin_.zip && sudo unzip -o /tmp/plugin_.zip -d /home/deck/homebrew/plugins/ && sudo systemctl restart plugin_loader.service
 ```
+
+You'll need to enter your sudo password during the installation. Once it's done you can go back to the game mode and the plugin should show up.
