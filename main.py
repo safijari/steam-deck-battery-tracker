@@ -6,6 +6,7 @@ from pathlib import Path
 import sqlite3
 from collections import defaultdict
 
+
 def split_by_app(data):
     idxs = []
     start_idx = 0
@@ -18,6 +19,8 @@ def split_by_app(data):
     if start_idx != idx:
         idxs.append((start_idx, idx, app))
     return idxs
+
+
 class Plugin:
     # A normal method. It can be called from JavaScript using call_plugin_function("method_1", argument1, argument2)
     async def add(self, left, right):
@@ -63,18 +66,30 @@ class Plugin:
         try:
             decky_plugin.logger.info(f"lookback {lookback}")
             end_time = time.time()
-            start_time = end_time - 24*lookback*3600
-            data = self.cursor.execute("select * from battery where time > " + str(int(end_time - start_time))).fetchall()
+            start_time = end_time - 24 * lookback * 3600
+            data = self.cursor.execute(
+                "select * from battery where time > " + str(int(start_time))
+            ).fetchall()
             diff = end_time - start_time
-            x_axis = [(d[0] - start_time)/diff for d in data]
-            y_axis = [d[1]/100 for d in data]
+            x_axis = [(d[0] - start_time) / diff for d in data]
+            y_axis = [d[1] / 100 for d in data]
             per_app_powers = defaultdict(list)
             for start, end, app in split_by_app(data):
                 if app == "Unknown":
                     app = "Steam"
-                per_app_powers[app].extend([d[3]/10.0 for d in data[start:end] if d[2] == -1])
-            per_app_data = [{"name": app, "average_power": int(sum(power_data)/len(power_data))} for app, power_data in per_app_powers.items()]
-            return {"x": x_axis, "cap": y_axis, "power_data": sorted(per_app_data, key=lambda x: -x["average_power"])}
+                per_app_powers[app].extend(
+                    [d[3] / 10.0 for d in data[start:end] if d[2] == -1]
+                )
+            per_app_data = [
+                {"name": app, "average_power": int(sum(power_data) / len(power_data))}
+                for app, power_data in per_app_powers.items()
+                if power_data
+            ]
+            return {
+                "x": x_axis,
+                "cap": y_axis,
+                "power_data": sorted(per_app_data, key=lambda x: -x["average_power"]),
+            }
         except Exception:
             decky_plugin.logger.exception("could not get recent data")
 
