@@ -144,11 +144,11 @@ const Content: VFC<{ serverAPI: ServerAPI, startData: any }> = ({serverAPI}) => 
 export default definePlugin((serverApi: ServerAPI) => {
   console.log("defining battery plugin");
   var app = Router.MainRunningApp?.display_name;
-  serverApi.callPluginMethod("set_app", {app: app}).then((val) => {console.log("called async fn", val);});
+  serverApi.callPluginMethod("set_app", {app: app}).then((val) => {});
 
   setInterval(() => {
     var app_now = Router.MainRunningApp?.display_name;
-    serverApi.callPluginMethod("set_app", {app: app_now}).then((val) => {console.log("called async fn", val);});
+    serverApi.callPluginMethod("set_app", {app: app_now}).then((val) => {});
     app = app_now;
   }, 1000*10);
 
