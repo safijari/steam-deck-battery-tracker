@@ -18,11 +18,6 @@ import { FaBatteryFull, FaShip } from "react-icons/fa";
 import logo from "../assets/logo.png";
 import {Canvas} from "./canvas";
 
-// interface AddMethodArgs {
-//   left: number;
-//   right: number;
-// }
-
 const Content: VFC<{ serverAPI: ServerAPI, startData: any }> = ({serverAPI}) => {
   const [lookback, setLookback] = useState<number | undefined>(1);
   const [leData, setData] = useState<any>(null);
