@@ -78,7 +78,6 @@ class Plugin:
         except Exception:
             decky_plugin.logger.exception("could not get recent data")
 
-    @asyncio.coroutine
     async def recorder(self):
         volt_file = open("/sys/class/power_supply/BAT1/voltage_now")
         curr_file = open("/sys/class/power_supply/BAT1/current_now")
