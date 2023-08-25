@@ -2,7 +2,7 @@
 
 Simple plugin to track battery history for your Steam Deck as well as power stats.
 
-![Example](example.jpg)
+![Example](example.png)
 
 # How to install (it's not on the plugin store)
 
