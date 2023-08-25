@@ -94,7 +94,7 @@ class Plugin:
         status = open("/sys/class/power_supply/BAT1/status")
         logger = decky_plugin.logger
 
-        logger.info("Watchdog started")
+        logger.info("recorder started")
         running_list = []
         while True:
             try:
@@ -123,5 +123,5 @@ class Plugin:
                     self.con.commit()
                     running_list = []
             except Exception:
-                logger.exception("watchdog")
+                logger.exception("recorder")
             await asyncio.sleep(5)
