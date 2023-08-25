@@ -5,6 +5,6 @@
   "publish": {
     "tags": ["template", "root"],
     "description": "Battery tracker plugin",
-    "image": "https://github.com/safijari/steam-deck-battery-tracker/"
+    "image": "https://raw.githubusercontent.com/safijari/steam-deck-battery-tracker/main/example.png"
   }
 }
