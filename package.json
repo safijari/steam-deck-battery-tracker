@@ -1,6 +1,6 @@
 {
   "name": "steam-deck-battery-tracker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Plugin to track battery history and power",
   "scripts": {
     "build": "shx rm -rf dist && rollup -c",
@@ -39,7 +39,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "decky-frontend-lib": "^3.21.1",
+    "decky-frontend-lib": "^3.24.5",
     "react-icons": "^4.4.0"
   },
   "pnpm": {
