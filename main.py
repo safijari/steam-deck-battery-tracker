@@ -88,23 +88,44 @@ class Plugin:
             decky_plugin.logger.exception("could not get recent data")
 
     async def recorder(self):
-        volt_file = open("/sys/class/power_supply/BAT1/voltage_now")
-        curr_file = open("/sys/class/power_supply/BAT1/current_now")
-        cap_file = open("/sys/class/power_supply/BAT1/capacity")
-        status = open("/sys/class/power_supply/BAT1/status")
-        logger = decky_plugin.logger
+        # Reference: https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
+        batt_dir = None
+        for ps in os.listdir("/sys/class/power_supply/"):
+            if ps.startswith("BAT"):
+                decky_plugin.logger.info("select battery: %s", ps)
+                batt_dir = os.path.join("/sys/class/power_supply/", ps)
+                break
+        if batt_dir is None:
+            raise Exception("No Battery Found")
 
-        logger.info("recorder started")
+        volt_file = open(os.path.join(batt_dir, "voltage_now"))
+        cap_file = open(os.path.join(batt_dir, "capacity"))
+        status = open(os.path.join(batt_dir, "status"))
+        if os.path.exists(os.path.join(batt_dir, "power_now")):
+            power_file = open(os.path.join(batt_dir, "power_now"))
+            power_mode = True
+        else:
+            curr_file = open(os.path.join(batt_dir, "current_now"))
+            power_mode = False
+
+        decky_plugin.logger.info("recorder started")
         running_list = []
         while True:
             try:
                 volt_file.seek(0)
-                curr_file.seek(0)
                 cap_file.seek(0)
                 status.seek(0)
                 volt = int(volt_file.read().strip())
-                curr = int(curr_file.read().strip())
                 cap = int(cap_file.read().strip())
+
+                if power_mode:
+                    power_file.seek(0)
+                    power = int(int(power_file.read().strip()) * 10.0**-5)
+                else:
+                    curr_file.seek(0)
+                    curr = int(curr_file.read().strip())
+                    power = int(volt * curr * 10.0**-11)
+
                 stat = status.read().strip()
                 if stat == "Discharging":
                     stat = -1
@@ -113,7 +134,6 @@ class Plugin:
                 else:
                     stat = 0
 
-                power = int(volt * curr * 10.0**-11)
                 curr_time = int(time.time())
                 running_list.append((curr_time, cap, stat, power, self.app))
                 if len(running_list) > 10:
@@ -123,5 +143,5 @@ class Plugin:
                     self.con.commit()
                     running_list = []
             except Exception:
-                logger.exception("recorder")
+                decky_plugin.logger.exception("recorder")
             await asyncio.sleep(5)
