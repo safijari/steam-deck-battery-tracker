@@ -21,6 +21,19 @@ def split_by_app(data):
     return idxs
 
 
+def get_battery_device():
+    """Find the first available battery device in /sys/class/power_supply/"""
+    power_supply_path = "/sys/class/power_supply/"
+    for device in os.listdir(power_supply_path):
+        device_path = os.path.join(power_supply_path, device)
+        if os.path.isdir(device_path):
+            # Check if it's a battery by looking for capacity file
+            capacity_file = os.path.join(device_path, "capacity")
+            if os.path.exists(capacity_file):
+                return device
+    return None
+
+
 class Plugin:
     async def _main(self):
         try:
@@ -39,6 +52,11 @@ class Plugin:
                     "create table battery (time __integer, capacity __integer, status __integer, power __integer, app __text);"
                 )
                 self.con.commit()
+
+            # Find battery device
+            self.battery_device = get_battery_device()
+            if not self.battery_device:
+                raise Exception("No battery device found")
 
             loop = asyncio.get_event_loop()
             self._recorder_task = loop.create_task(Plugin.recorder(self))
@@ -88,13 +106,14 @@ class Plugin:
             decky_plugin.logger.exception("could not get recent data")
 
     async def recorder(self):
-        volt_file = open("/sys/class/power_supply/BAT1/voltage_now")
-        curr_file = open("/sys/class/power_supply/BAT1/current_now")
-        cap_file = open("/sys/class/power_supply/BAT1/capacity")
-        status = open("/sys/class/power_supply/BAT1/status")
+        power_supply_path = f"/sys/class/power_supply/{self.battery_device}/"
+        volt_file = open(os.path.join(power_supply_path, "voltage_now"))
+        curr_file = open(os.path.join(power_supply_path, "current_now"))
+        cap_file = open(os.path.join(power_supply_path, "capacity"))
+        status = open(os.path.join(power_supply_path, "status"))
         logger = decky_plugin.logger
 
-        logger.info("recorder started")
+        logger.info(f"recorder started using battery device {self.battery_device}")
         running_list = []
         while True:
             try:
